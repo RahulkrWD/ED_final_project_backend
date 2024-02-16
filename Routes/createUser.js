@@ -3,6 +3,7 @@ const router = express.Router();
 const userModel = require("../Models/newUser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const authenticateToken = require("../middleware/authMiddleware");
 
 // Signup page
 router.post("/register", async function (req, res) {
@@ -114,7 +115,7 @@ router.post("/googleAuth/login", async function (req, res) {
 });
 
 // find profile using query || method GET
-router.get("/profile/:id", async function (req, res) {
+router.get("/profile/:id", authenticateToken, async function (req, res) {
   let query = {};
   let id = +req.params.id;
   if (id) {

@@ -5,6 +5,7 @@ const mealsModel = require("../Models/mealType");
 const restaurantModel = require("../Models/restaurant");
 const menusModel = require("../Models/menu");
 const orderModel = require("../Models/order");
+const authenticateToken = require("../middleware/authMiddleware");
 
 // Get all locations
 router.get("/location", async function (req, res) {
@@ -133,7 +134,7 @@ router.post("/menuItem", async function (req, res) {
 });
 
 // Place an order
-router.post("/placeOrder", async function (req, res) {
+router.post("/placeOrder", authenticateToken, async function (req, res) {
   try {
     const {
       orderId,
@@ -177,7 +178,7 @@ router.post("/placeOrder", async function (req, res) {
 });
 
 // Find order using query method
-router.get("/order", async function (req, res) {
+router.get("/order", authenticateToken, async function (req, res) {
   let query = {};
   let id = +req.query.id;
   if (id) {
