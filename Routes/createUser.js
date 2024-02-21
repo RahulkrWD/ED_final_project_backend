@@ -90,7 +90,6 @@ router.post("/signup/googleAuth", async function (req, res) {
       user: signup,
     });
   } catch (err) {
-    console.error("Error during Google authentication:", err);
     res.send({
       success: false,
       message: "Internal server error",
@@ -107,7 +106,7 @@ router.post("/googleAuth/login", async function (req, res) {
   if (!user) {
     res.send({ success: false, message: "User not found" });
   } else {
-    const token = jwt.sign({ userId: user._id }, "your_secret_key", {
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
     res.send({ success: true, message: "Login successful", token, user });

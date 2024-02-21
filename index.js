@@ -6,6 +6,7 @@ const createUser = require("./Routes/createUser");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const Razorpay = require("razorpay");
 dotenv.config();
 connectDB();
 app.use(cors());

@@ -6,6 +6,7 @@ const restaurantModel = require("../Models/restaurant");
 const menusModel = require("../Models/menu");
 const orderModel = require("../Models/order");
 const authenticateToken = require("../middleware/authMiddleware");
+// const Razorpay = require("razorpay");
 
 // Get all locations
 router.get("/location", async function (req, res) {
@@ -132,7 +133,6 @@ router.post("/menuItem", async function (req, res) {
     res.send("invalid input");
   }
 });
-
 // Place an order
 router.post("/placeOrder", authenticateToken, async function (req, res) {
   try {
@@ -176,6 +176,22 @@ router.post("/placeOrder", authenticateToken, async function (req, res) {
     res.send({ success: false, message: "Order not placed", err });
   }
 });
+// const razorpay = new Razorpay({
+//   key_id: "YOUR_RAZORPAY_KEY_ID",
+//   key_secret: "YOUR_RAZORPAY_KEY_SECRET",
+// });
+// router.post("/api/payment/capture", async (req, res) => {
+//   const { payment_id, order_id } = req.body;
+
+//   try {
+//     const response = await razorpay.payments.capture(payment_id);
+//     console.log(response);
+//     res.json({ success: true });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, error: "Payment capture failed" });
+//   }
+// });
 
 // Find order using query method
 router.get("/order", authenticateToken, async function (req, res) {
