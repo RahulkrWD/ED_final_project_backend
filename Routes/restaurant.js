@@ -134,7 +134,7 @@ router.post("/menuItem", async function (req, res) {
   }
 });
 // Place an order
-router.post("/placeOrder", authenticateToken, async function (req, res) {
+router.post("/placeOrder", async function (req, res) {
   try {
     const {
       orderId,
