@@ -6,9 +6,7 @@ const restaurantModel = require("../Models/restaurant");
 const menusModel = require("../Models/menu");
 const orderModel = require("../Models/order");
 const authenticateToken = require("../middleware/authMiddleware");
-// const Razorpay = require("razorpay");
 
-// Get all locations
 router.get("/location", async function (req, res) {
   try {
     const location = await locationModel.find();
@@ -18,7 +16,6 @@ router.get("/location", async function (req, res) {
   }
 });
 
-// Find restaurants based on stateId or mealId
 router.get("/restaurants", async function (req, res) {
   try {
     let query = {};
@@ -36,7 +33,6 @@ router.get("/restaurants", async function (req, res) {
   }
 });
 
-// Get all meal types for quick search
 router.get("/quicksearch", async function (req, res) {
   try {
     const meals = await mealsModel.find();
@@ -46,45 +42,55 @@ router.get("/quicksearch", async function (req, res) {
   }
 });
 
-// Filter restaurants based on mealId, cuisineId, and cost range
 router.get("/filter/:mealId", async function (req, res) {
   let query = {};
   let mealId = +req.params.mealId;
   let cuisineId = +req.query.cuisineId;
   let lcost = +req.query.lcost;
   let hcost = +req.query.hcost;
+  let sort = req.query.sort;
 
+  // filter by mealId
   if (mealId) {
     query = { "mealTypes.mealtype_id": mealId };
   }
 
+  // filter by cuisineId
   if (cuisineId) {
     query = {
       "mealTypes.mealtype_id": mealId,
       "cuisines.cuisine_id": cuisineId,
     };
-  } else if (lcost && hcost) {
+  }
+  // range filter by lcost to hcost
+  if (lcost && hcost) {
+    query = { cost: { $gt: lcost, $lt: hcost } };
+  }
+
+  // filter cuisineid && lcost && hcost
+  if (cuisineId && lcost && hcost) {
     query = {
-      "mealTypes.mealtype_id": mealId,
-      $and: [{ cost: { $gt: lcost, $lt: hcost } }],
-    };
-  } else if (cuisineId && lcost && hcost) {
-    query = {
-      "mealTypes.mealtype_id": mealId,
       "cuisines.cuisine_id": cuisineId,
       $and: [{ cost: { $gt: lcost, $lt: hcost } }],
     };
   }
 
+  // sort filter
+  const sortOptions = {
+    asc: { cost: 1 },
+    desc: { cost: -1 },
+  };
+
+  const sortQuery = sortOptions[sort] || {};
+
   try {
-    const filter = await restaurantModel.find(query);
+    const filter = await restaurantModel.find(query).sort(sortQuery);
     res.send(filter);
   } catch (err) {
     console.log("server error", err);
   }
 });
 
-// Get details of a specific restaurant by ID
 router.get("/restaurants/:id", async function (req, res) {
   let query = {};
   let id = +req.params.id;
@@ -109,7 +115,6 @@ router.get("/menu", async function (req, res) {
   }
 });
 
-// Get menu for a specific restaurant by ID
 router.get("/menu/:id", async function (req, res) {
   let query = {};
   let id = +req.params.id;
