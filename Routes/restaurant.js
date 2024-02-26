@@ -6,6 +6,9 @@ const restaurantModel = require("../Models/restaurant");
 const menusModel = require("../Models/menu");
 const orderModel = require("../Models/order");
 const authenticateToken = require("../middleware/authMiddleware");
+const Razorpay = require("razorpay");
+const dotenv = require("dotenv");
+dotenv.config();
 
 router.get("/location", async function (req, res) {
   try {
@@ -139,6 +142,10 @@ router.post("/menuItem", async function (req, res) {
   }
 });
 // Place an order
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_ID_KEY,
+  key_secret: process.env.RAZORPAY_SECRET_KEY,
+});
 router.post("/placeOrder", async function (req, res) {
   try {
     const {
@@ -164,7 +171,13 @@ router.post("/placeOrder", async function (req, res) {
     ) {
       return res.send({ success: false, message: "All fields are required" });
     }
-
+    const options = {
+      amount: cost * 100, // amount in paisa
+      currency: "INR",
+      receipt: "receipt_order_" + Math.floor(Math.random() * 1000),
+      payment_capture: 1, // Auto-capture payment after successful payment
+    };
+    const razorpayOrder = await razorpay.orders.create(options);
     const placeOrder = await orderModel.create({
       orderId,
       name,
@@ -175,29 +188,40 @@ router.post("/placeOrder", async function (req, res) {
       restName,
       orderItems,
       uniqueId,
+      razorpayOrderId: razorpayOrder.id,
     });
-    res.send({ success: true, message: "Order Placed", placeOrder });
+    res.send({
+      success: true,
+      message: "Order Placed",
+      orderId: placeOrder.orderId,
+      razorpayOrderId: razorpayOrder.id,
+      amount: placeOrder.cost,
+    });
   } catch (err) {
     res.send({ success: false, message: "Order not placed", err });
   }
 });
-// const razorpay = new Razorpay({
-//   key_id: "YOUR_RAZORPAY_KEY_ID",
-//   key_secret: "YOUR_RAZORPAY_KEY_SECRET",
-// });
-// router.post("/api/payment/capture", async (req, res) => {
-//   const { payment_id, order_id } = req.body;
+// Capture payment after successful payment by Razorpay
+router.post("/payment/capture", async (req, res) => {
+  const { payment_id, order_id, signature } = req.body;
 
-//   try {
-//     const response = await razorpay.payments.capture(payment_id);
-//     console.log(response);
-//     res.json({ success: true });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ success: false, error: "Payment capture failed" });
-//   }
-// });
-
+  try {
+    const payment = await razorpay.payments.fetch(payment_id);
+    const paymentData = {
+      order_id,
+      amount: payment.amount / 100,
+      status: payment.status,
+    };
+    res.send({
+      success: true,
+      message: "Order Placed Successfully",
+      paymentData,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Payment capture failed" });
+  }
+});
 // Find order using query method
 router.get("/order", authenticateToken, async function (req, res) {
   let query = {};
