@@ -11,16 +11,10 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
-
-// Home page route
 app.get("/", function (req, res) {
   res.send("Welcome to my Zomato App");
 });
-
-// Restaurant route
 app.use("/restaurant", restaurant);
-
-// User creation route
 app.use("/createUser", createUser);
 
 const PORT = process.env.PORT || 4200;
